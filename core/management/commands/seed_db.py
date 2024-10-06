@@ -1,6 +1,6 @@
 from django.core.management.base import BaseCommand
 from django.contrib.auth.models import User
-from core.models import Profile  # Assuming you'll create a Profile model
+# from core.models import Profile  # Assuming you'll create a Profile model
 
 class Command(BaseCommand):
     help = 'Seeds the database with initial data'
