@@ -2,6 +2,36 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from django.contrib.auth.models import Group, Permission
+
+# Create default groups
+def create_groups():
+    groups = ['Admin', 'Moderator', 'Regular User']
+    for group_name in groups:
+        Group.objects.get_or_create(name=group_name)
+
+# Assign permissions to groups
+def assign_permissions():
+    admin_group = Group.objects.get(name='Admin')
+    moderator_group = Group.objects.get(name='Moderator')
+    
+    # Assign all permissions to Admin group
+    admin_group.permissions.set(Permission.objects.all())
+    
+    # Assign specific permissions to Moderator group
+    moderator_permissions = Permission.objects.filter(codename__in=['add_user', 'change_user', 'view_user'])
+    moderator_group.permissions.set(moderator_permissions)
+
+# Run these functions when the app is ready
+from django.apps import AppConfig
+
+class CoreConfig(AppConfig):
+    default_auto_field = 'django.db.models.BigAutoField'
+    name = 'core'
+
+    def ready(self):
+        create_groups()
+        assign_permissions()
 
 class SustainabilityPreferences(models.Model):
     INTEREST_CHOICES = [

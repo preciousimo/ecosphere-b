@@ -7,6 +7,7 @@ from django.contrib.auth.models import User
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
 from .serializers import UserProfileSerializer
+from .permissions import IsAdminOrModerator
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
@@ -58,3 +59,9 @@ def user_profile(request):
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+@api_view(['GET'])
+@permission_classes([IsAuthenticated, IsAdminOrModerator])
+def admin_dashboard(request):
+    # This view is only accessible to users in the Admin or Moderator groups
+    return Response({'message': 'Welcome to the admin dashboard'})
