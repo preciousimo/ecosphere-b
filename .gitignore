@@ -8,6 +8,7 @@ venv/
 *.log
 db.sqlite3
 media/
+static/
 
 # macOS
 .DS_Store
