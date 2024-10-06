@@ -1,13 +1,19 @@
 from django.shortcuts import render
+from django.contrib.auth.models import User
+from django.contrib.auth import authenticate
+from django.core.mail import send_mail
+from django.conf import settings
+from django.utils.http import urlsafe_base64_encode
+from django.utils.encoding import force_bytes
+from django.contrib.auth.tokens import default_token_generator
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
-from django.contrib.auth.models import User
 from rest_framework_simplejwt.tokens import RefreshToken
-from django.contrib.auth import authenticate
 from .serializers import UserProfileSerializer
 from .permissions import IsAdminOrModerator
+
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
@@ -23,12 +29,39 @@ def register_user(request):
         return Response({'error': 'Username already exists'}, status=status.HTTP_400_BAD_REQUEST)
     
     user = User.objects.create_user(username=username, email=email, password=password)
-    refresh = RefreshToken.for_user(user)
+    user.is_active = False
+    user.save()
     
-    return Response({
-        'refresh': str(refresh),
-        'access': str(refresh.access_token),
-    }, status=status.HTTP_201_CREATED)
+    # Generate verification token
+    token = default_token_generator.make_token(user)
+    uid = urlsafe_base64_encode(force_bytes(user.pk))
+    verification_link = f"{settings.SITE_URL}/verify-email/{uid}/{token}/"
+    
+    # Send verification email
+    subject = 'Verify your EcoSphere account'
+    message = f'Please click the following link to verify your account: {verification_link}'
+    from_email = settings.DEFAULT_FROM_EMAIL
+    recipient_list = [email]
+    
+    send_mail(subject, message, from_email, recipient_list)
+    
+    return Response({'message': 'User registered successfully. Please check your email to verify your account.'}, status=status.HTTP_201_CREATED)
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def verify_email(request, uidb64, token):
+    try:
+        uid = force_text(urlsafe_base64_decode(uidb64))
+        user = User.objects.get(pk=uid)
+    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+        user = None
+    
+    if user is not None and default_token_generator.check_token(user, token):
+        user.is_active = True
+        user.save()
+        return Response({'message': 'Email verified successfully. You can now log in.'}, status=status.HTTP_200_OK)
+    else:
+        return Response({'error': 'Invalid verification link'}, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
