@@ -3,6 +3,7 @@ from pathlib import Path
 from datetime import timedelta
 from dotenv import load_dotenv
 from decouple import config
+from urllib.parse import urlparse
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -77,19 +78,17 @@ if os.environ.get('DJANGO_ENV') == 'development':
             'NAME': BASE_DIR / 'db.sqlite3',
         }
     }
+tmpPostgres = urlparse(os.getenv("DATABASE_URL"))
 
 if os.environ.get('DJANGO_ENV') == 'production':
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
-            'NAME': str(os.getenv('PGDATABASE')),
-            'USER': str(os.getenv('PGUSER')),
-            'PASSWORD': str(os.getenv('PGPASSWORD')),
-            'HOST': str(os.getenv('PGHOST')),
-            'PORT': str(os.getenv('PGPORT', 5432)),
-            'OPTIONS': {
-                'sslmode': 'require',
-            },
+            'NAME': tmpPostgres.path.replace('/', ''),
+            'USER': tmpPostgres.username,
+            'PASSWORD': tmpPostgres.password,
+            'HOST': tmpPostgres.hostname,
+            'PORT': 5432,
         }
     }
 
