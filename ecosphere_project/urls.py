@@ -10,5 +10,8 @@ urlpatterns = [
         path('login/', login_user, name='login'),
         path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
         path('profile/', user_profile, name='profile'),
+        path('auth/', include('dj_rest_auth.urls')),
+        path('auth/registration/', include('dj_rest_auth.registration.urls')),
+        path('auth/google/', include('allauth.socialaccount.providers.google.urls')),
     ])),
 ]
