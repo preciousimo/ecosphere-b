@@ -1,5 +1,7 @@
 asgiref==3.8.1
+dj-rest-auth==6.0.0
 Django>=4.2.16
+django-allauth==65.0.2
 django-cors-headers==4.4.0
 djangorestframework==3.15.2
 djangorestframework-simplejwt==5.3.1
