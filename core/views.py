@@ -6,13 +6,16 @@ from django.conf import settings
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes
 from django.contrib.auth.tokens import default_token_generator
-from rest_framework import status
+from rest_framework import status, generics, permissions
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.filters import SearchFilter
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework_simplejwt.tokens import RefreshToken
-from .serializers import UserProfileSerializer
-from .permissions import IsAdminOrModerator
+from .serializers import UserProfileSerializer, ResourceSerializer, BookingSerializer, ReviewSerializer
+from .permissions import IsAdminOrModerator, IsOwnerOrReadOnly
+from .models import Resource, Booking, Review
 
 
 @api_view(['POST'])
@@ -145,3 +148,42 @@ def user_profile(request):
 def admin_dashboard(request):
     # This view is only accessible to users in the Admin or Moderator groups
     return Response({'message': 'Welcome to the admin dashboard'})
+
+class ResourceListCreateView(generics.ListCreateAPIView):
+    queryset = Resource.objects.all()
+    serializer_class = ResourceSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    filter_backends = [SearchFilter, DjangoFilterBackend]
+    search_fields = ['name', 'description', 'category']
+    filterset_fields = ['category', 'available']
+
+    def perform_create(self, serializer):
+        serializer.save(owner=self.request.user)
+
+class ResourceDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Resource.objects.all()
+    serializer_class = ResourceSerializer
+    permission_classes = [IsOwnerOrReadOnly | IsAdminOrModerator]
+
+class BookingListCreateView(generics.ListCreateAPIView):
+    queryset = Booking.objects.all()
+    serializer_class = BookingSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def perform_create(self, serializer):
+        resource_id = self.request.data.get('resource_id')
+        resource = Resource.objects.get(id=resource_id)
+        serializer.save(user=self.request.user, resource=resource)
+
+class ReviewListCreateView(generics.ListCreateAPIView):
+    serializer_class = ReviewSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+    def get_queryset(self):
+        resource_id = self.kwargs['resource_id']
+        return Review.objects.filter(resource__id=resource_id)
+
+    def perform_create(self, serializer):
+        resource_id = self.kwargs['resource_id']
+        resource = Resource.objects.get(id=resource_id)
+        serializer.save(user=self.request.user, resource=resource)
