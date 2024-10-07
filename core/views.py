@@ -4,7 +4,7 @@ from django.contrib.auth import authenticate
 from django.core.mail import send_mail
 from django.conf import settings
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
-from django.utils.encoding import force_bytes
+from django.utils.encoding import force_bytes, force_str
 from django.contrib.auth.tokens import default_token_generator
 from rest_framework import status, generics, permissions
 from rest_framework.response import Response
@@ -16,6 +16,9 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from .serializers import UserProfileSerializer, ResourceSerializer, BookingSerializer, ReviewSerializer
 from .permissions import IsAdminOrModerator, IsOwnerOrReadOnly
 from .models import Resource, Booking, Review
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 @api_view(['POST'])
@@ -37,7 +40,7 @@ def register_user(request):
     
     # Generate verification token
     token = default_token_generator.make_token(user)
-    uid = urlsafe_base64_encode(force_bytes(user.pk))
+    uid = urlsafe_base64_encode(force_bytes(str(user.pk)))
     verification_link = f"{settings.SITE_URL}/verify-email/{uid}/{token}/"
     
     # Send verification email
@@ -53,18 +56,28 @@ def register_user(request):
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def verify_email(request, uidb64, token):
+    logger.info(f"Received verification request for uidb64: {uidb64}, token: {token}")
     try:
-        uid = str(urlsafe_base64_decode(uidb64))
+        uid = force_str(urlsafe_base64_decode(uidb64))
+        logger.info(f"Decoded UID: {uid}")
         user = User.objects.get(pk=uid)
-    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+        logger.info(f"Found user: {user.username}")
+    except (TypeError, ValueError, OverflowError, User.DoesNotExist) as e:
+        logger.error(f"Error decoding UID or finding user: {str(e)}")
         user = None
     
     if user is not None and default_token_generator.check_token(user, token):
-        user.is_active = True
-        user.save()
-        return Response({'message': 'Email verified successfully. You can now log in.'}, status=status.HTTP_200_OK)
+        if default_token_generator.check_token(user, token):
+            logger.info("Token is valid")
+            user.is_active = True
+            user.save()
+            return Response({'message': 'Email verified successfully. You can now log in.'}, status=status.HTTP_200_OK)
+        else:
+            logger.error("Token is invalid")
     else:
-        return Response({'error': 'Invalid verification link'}, status=status.HTTP_400_BAD_REQUEST)
+        logger.error("User is None")
+    
+    return Response({'error': 'Invalid verification link'}, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['POST'])
 @permission_classes([AllowAny])

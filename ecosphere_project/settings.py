@@ -21,6 +21,7 @@ DEBUG = False if os.getenv('DJANGO_ENV') == 'production' else True
 
 ALLOWED_HOSTS = ['*']
 
+SITE_URL =  os.getenv('SITE_URL')
 
 # Application definition
 
