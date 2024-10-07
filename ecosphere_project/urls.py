@@ -2,10 +2,14 @@ from django.contrib import admin
 from django.urls import path, include
 from core.views import (
     register_user, login_user, user_profile, verify_email,
-    password_reset_request, password_reset_confirm, stripe_webhook,
+    password_reset_request, password_reset_confirm,
     ResourceListCreateView, ResourceDetailView,
     BookingListCreateView, ReviewListCreateView,
-    CreateCheckoutSessionView
+    WasteEntryListCreateView, RecyclingCenterListCreateView,
+    RecyclingCenterDetailView, EcoChallengeListCreateView,
+    EcoChallengeDetailView, UserChallengeListView,
+    UserChallengeCompleteView, LeaderboardListView,
+    UserWasteSummaryView, CreateCheckoutSessionView, stripe_webhook
 )
 from rest_framework_simplejwt.views import TokenRefreshView
 
@@ -26,13 +30,25 @@ urlpatterns = [
         path('bookings/', BookingListCreateView.as_view(), name='booking_list_create'),
         path('reviews/<int:resource_id>/', ReviewListCreateView.as_view(), name='review_list_create'),
 
+        # Waste Reduction and Recycling URLs
+        path('waste-entries/', WasteEntryListCreateView.as_view(), name='waste_entry_list_create'),
+        path('recycling-centers/', RecyclingCenterListCreateView.as_view(), name='recycling_center_list_create'),
+        path('recycling-centers/<int:pk>/', RecyclingCenterDetailView.as_view(), name='recycling_center_detail'),
+        path('eco-challenges/', EcoChallengeListCreateView.as_view(), name='eco_challenge_list_create'),
+        path('eco-challenges/<int:pk>/', EcoChallengeDetailView.as_view(), name='eco_challenge_detail'),
+        path('user-challenges/', UserChallengeListView.as_view(), name='user_challenge_list'),
+        path('user-challenges/complete/<int:challenge_id>/', UserChallengeCompleteView.as_view(), name='user_challenge_complete'),
+        path('leaderboard/', LeaderboardListView.as_view(), name='leaderboard_list'),
+        path('user-waste-summary/', UserWasteSummaryView.as_view(), name='user_waste_summary'),
+
+        # Payment and Webhooks
+        path('create-checkout-session/<int:resource_id>/', CreateCheckoutSessionView.as_view(), name='create_checkout_session'),
+        path('webhook/stripe/', stripe_webhook, name='stripe_webhook'),
+
         # Authentication and Social Auth
         path('auth/', include('dj_rest_auth.urls')),
         path('auth/registration/', include('dj_rest_auth.registration.urls')),
         path('auth/google/', include('allauth.socialaccount.providers.google.urls')),
         path('auth/facebook/', include('allauth.socialaccount.providers.facebook.urls')),
-        
-        path('create-checkout-session/<int:resource_id>/', CreateCheckoutSessionView.as_view(), name='create_checkout_session'),
-        path('webhook/stripe/', stripe_webhook, name='stripe_webhook'),
     ])),
 ]

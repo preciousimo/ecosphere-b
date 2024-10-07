@@ -11,3 +11,7 @@ class IsOwnerOrReadOnly(permissions.BasePermission):
             return True
         # Write permissions only for the owner or admins
         return obj.owner == request.user or request.user.groups.filter(name='Admin').exists()
+
+class IsAdminUser(permissions.BasePermission):
+    def has_permission(self, request, view):
+        return request.user and request.user.is_staff
