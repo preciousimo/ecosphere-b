@@ -14,7 +14,11 @@ from core.views import (
     EnergyUsageListCreateView, EnergySavingRecommendationListView,
     EnergySavingRecommendationMarkReadView, CommunityEnergyGoalListCreateView,
     CommunityEnergyGoalDetailView, UserCommunityProgressListView,
-    UserCommunityProgressUpdateView, GenerateEnergySavingRecommendationsView
+    UserCommunityProgressUpdateView, GenerateEnergySavingRecommendationsView,
+    CommunityGardenListCreateView, CommunityGardenDetailView,
+    SeasonalPlantingGuideListCreateView, SeasonalPlantingGuideDetailView,
+    ProduceExchangeListingListCreateView, ProduceExchangeListingDetailView,
+    GardeningTipListCreateView, GardeningTipDetailView
 )
 from rest_framework_simplejwt.views import TokenRefreshView
 
@@ -57,10 +61,19 @@ urlpatterns = [
         path('community-progress/', UserCommunityProgressListView.as_view(), name='user_community_progress_list'),
         path('community-progress/update/<int:community_goal_id>/', UserCommunityProgressUpdateView.as_view(), name='user_community_progress_update'),
         path('generate-recommendations/', GenerateEnergySavingRecommendationsView.as_view(), name='generate_energy_recommendations'),
-
         # Payment and Webhooks
         path('create-checkout-session/<int:resource_id>/', CreateCheckoutSessionView.as_view(), name='create_checkout_session'),
         path('webhook/stripe/', stripe_webhook, name='stripe_webhook'),
+
+        # Local Food Production URLs
+        path('gardens/', CommunityGardenListCreateView.as_view(), name='community_garden_list_create'),
+        path('gardens/<int:pk>/', CommunityGardenDetailView.as_view(), name='community_garden_detail'),
+        path('seasonal-planting-guides/', SeasonalPlantingGuideListCreateView.as_view(), name='seasonal_planting_guide_list_create'),
+        path('seasonal-planting-guides/<int:pk>/', SeasonalPlantingGuideDetailView.as_view(), name='seasonal_planting_guide_detail'),
+        path('produce-exchange-listings/', ProduceExchangeListingListCreateView.as_view(), name='produce_exchange_listing_list_create'),
+        path('produce-exchange-listings/<int:pk>/', ProduceExchangeListingDetailView.as_view(), name='produce_exchange_listing_detail'),
+        path('gardening-tips/', GardeningTipListCreateView.as_view(), name='gardening_tip_list_create'),
+        path('gardening-tips/<int:pk>/', GardeningTipDetailView.as_view(), name='gardening_tip_detail'),
 
         # Authentication and Social Auth
         path('auth/', include('dj_rest_auth.urls')),

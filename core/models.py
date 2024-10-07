@@ -182,6 +182,76 @@ class UserCommunityProgress(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - {self.community_goal.title} - {self.energy_contributed} kWh"
+    
+class CommunityGarden(models.Model):
+    name = models.CharField(max_length=100)
+    description = models.TextField()
+    address = models.TextField()
+    latitude = models.DecimalField(max_digits=9, decimal_places=6)
+    longitude = models.DecimalField(max_digits=9, decimal_places=6)
+    contact_email = models.EmailField()
+    contact_phone = models.CharField(max_length=20, blank=True, null=True)
+    owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='gardens')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.name
+
+class SeasonalPlantingGuide(models.Model):
+    SEASON_CHOICES = [
+        ('spring', 'Spring'),
+        ('summer', 'Summer'),
+        ('autumn', 'Autumn'),
+        ('winter', 'Winter'),
+    ]
+
+    season = models.CharField(max_length=20, choices=SEASON_CHOICES)
+    plant_name = models.CharField(max_length=100)
+    planting_start = models.DateField()
+    planting_end = models.DateField()
+    harvest_start = models.DateField()
+    harvest_end = models.DateField()
+    tips = models.TextField()
+
+    def __str__(self):
+        return f"{self.plant_name} - {self.get_season_display()}"
+
+class ProduceExchangeListing(models.Model):
+    PRODUCE_TYPE_CHOICES = [
+        ('vegetable', 'Vegetable'),
+        ('fruit', 'Fruit'),
+        ('herb', 'Herb'),
+        ('other', 'Other'),
+    ]
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='produce_listings')
+    garden = models.ForeignKey(CommunityGarden, on_delete=models.CASCADE, related_name='produce_listings')
+    produce_type = models.CharField(max_length=50, choices=PRODUCE_TYPE_CHOICES)
+    produce_name = models.CharField(max_length=100)
+    quantity_available = models.PositiveIntegerField(help_text="Quantity available (units)")
+    description = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.produce_name} by {self.user.username} at {self.garden.name}"
+
+class GardeningTip(models.Model):
+    CATEGORY_CHOICES = [
+        ('planting', 'Planting'),
+        ('maintenance', 'Maintenance'),
+        ('pest_control', 'Pest Control'),
+        ('harvesting', 'Harvesting'),
+        ('other', 'Other'),
+    ]
+
+    title = models.CharField(max_length=100)
+    category = models.CharField(max_length=50, choices=CATEGORY_CHOICES)
+    content = models.TextField()
+    author = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='gardening_tips')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.title
 
 def create_custom_permissions():
     content_type = ContentType.objects.get_for_model(Resource)

@@ -3,7 +3,8 @@ from .models import (
     Resource, Booking, Review, WasteEntry, RecyclingCenter,
     EcoChallenge, UserChallenge, Leaderboard, SustainabilityPreferences,
     SmartHomeDevice, EnergyUsage, EnergySavingRecommendation,
-    CommunityEnergyGoal, UserCommunityProgress
+    CommunityEnergyGoal, UserCommunityProgress, CommunityGarden,
+    SeasonalPlantingGuide, ProduceExchangeListing, GardeningTip
 )
 
 admin.site.register(Resource)
@@ -20,3 +21,7 @@ admin.site.register(EnergyUsage)
 admin.site.register(EnergySavingRecommendation)
 admin.site.register(CommunityEnergyGoal)
 admin.site.register(UserCommunityProgress)
+admin.site.register(CommunityGarden)
+admin.site.register(SeasonalPlantingGuide)
+admin.site.register(ProduceExchangeListing)
+admin.site.register(GardeningTip)

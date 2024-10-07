@@ -19,21 +19,25 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework_simplejwt.tokens import RefreshToken
-from .serializers import (
-    ResourceSerializer, BookingSerializer, ReviewSerializer, UserProfileSerializer,
-    WasteEntrySerializer, RecyclingCenterSerializer,
-    EcoChallengeSerializer, UserChallengeSerializer,
-    LeaderboardSerializer, SmartHomeDeviceSerializer,
-    EnergyUsageSerializer, EnergySavingRecommendationSerializer,
-    CommunityEnergyGoalSerializer, UserCommunityProgressSerializer
-)
 from .models import (
     Resource, Booking, Review, WasteEntry, RecyclingCenter,
     EcoChallenge, UserChallenge, Leaderboard, SmartHomeDevice,
     EnergyUsage, EnergySavingRecommendation, CommunityEnergyGoal,
-    UserCommunityProgress
+    UserCommunityProgress, CommunityGarden, SeasonalPlantingGuide,
+    ProduceExchangeListing, GardeningTip
 )
-from .permissions import IsAdminOrModerator, IsOwnerOrReadOnly, IsAdminUser, IsAuthenticatedAndOwner
+from .serializers import (
+    ResourceSerializer, BookingSerializer, ReviewSerializer,
+    WasteEntrySerializer, RecyclingCenterSerializer, EcoChallengeSerializer,
+    UserChallengeSerializer, LeaderboardSerializer, SmartHomeDeviceSerializer,
+    EnergyUsageSerializer, EnergySavingRecommendationSerializer,
+    CommunityEnergyGoalSerializer, UserCommunityProgressSerializer,
+    CommunityGardenSerializer, SeasonalPlantingGuideSerializer,
+    ProduceExchangeListingSerializer, GardeningTipSerializer
+)
+from .permissions import (
+    IsAdminOrModerator, IsOwnerOrReadOnly, IsAdminUser, IsAuthorOrReadOnly
+)
 import logging
 import stripe
 import json
@@ -536,3 +540,84 @@ class GenerateEnergySavingRecommendationsView(APIView):
 
         serialized_recs = EnergySavingRecommendationSerializer(EnergySavingRecommendation.objects.filter(user=user, is_read=False), many=True)
         return Response(serialized_recs.data, status=status.HTTP_200_OK)
+    
+# CommunityGarden Views
+
+class CommunityGardenListCreateView(generics.ListCreateAPIView):
+    queryset = CommunityGarden.objects.all()
+    serializer_class = CommunityGardenSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+    def perform_create(self, serializer):
+        serializer.save(owner=self.request.user)
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_authenticated and user.groups.filter(name__in=['Admin', 'Moderator']).exists():
+            return CommunityGarden.objects.all()
+        return CommunityGarden.objects.filter(owner=user)
+
+class CommunityGardenDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = CommunityGarden.objects.all()
+    serializer_class = CommunityGardenSerializer
+    permission_classes = [IsOwnerOrReadOnly | IsAdminOrModerator]
+
+# SeasonalPlantingGuide Views
+
+class SeasonalPlantingGuideListCreateView(generics.ListCreateAPIView):
+    queryset = SeasonalPlantingGuide.objects.all()
+    serializer_class = SeasonalPlantingGuideSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsAdminOrModerator]
+    filter_backends = [DjangoFilterBackend, SearchFilter]
+    filterset_fields = ['season', 'plant_name']
+    search_fields = ['plant_name', 'tips']
+
+    def perform_create(self, serializer):
+        serializer.save()
+
+class SeasonalPlantingGuideDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = SeasonalPlantingGuide.objects.all()
+    serializer_class = SeasonalPlantingGuideSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsAdminOrModerator]
+
+# ProduceExchangeListing Views
+
+class ProduceExchangeListingListCreateView(generics.ListCreateAPIView):
+    queryset = ProduceExchangeListing.objects.all()
+    serializer_class = ProduceExchangeListingSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    filter_backends = [DjangoFilterBackend, SearchFilter]
+    filterset_fields = ['produce_type', 'produce_name', 'garden__name']
+    search_fields = ['produce_name', 'description']
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_authenticated and user.groups.filter(name__in=['Admin', 'Moderator']).exists():
+            return ProduceExchangeListing.objects.all()
+        return ProduceExchangeListing.objects.filter(user=user)
+
+class ProduceExchangeListingDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = ProduceExchangeListing.objects.all()
+    serializer_class = ProduceExchangeListingSerializer
+    permission_classes = [IsOwnerOrReadOnly | IsAdminOrModerator]
+
+# GardeningTip Views
+
+class GardeningTipListCreateView(generics.ListCreateAPIView):
+    queryset = GardeningTip.objects.all()
+    serializer_class = GardeningTipSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    filter_backends = [DjangoFilterBackend, SearchFilter]
+    filterset_fields = ['category']
+    search_fields = ['title', 'content']
+
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)
+
+class GardeningTipDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = GardeningTip.objects.all()
+    serializer_class = GardeningTipSerializer
+    permission_classes = [IsAuthorOrReadOnly | IsAdminOrModerator]
