@@ -12,6 +12,7 @@ EcoSphere is a sustainability-focused platform that helps communities promote ec
 
 ---
 
+## **Features**
 
 - **Resource Sharing & Booking**: Share and book eco-friendly resources within the community.
 - **Waste Reduction & Recycling**: Track waste, locate recycling centers, participate in eco-challenges, and view community leaderboards.
