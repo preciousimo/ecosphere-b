@@ -2,9 +2,10 @@ from django.contrib import admin
 from django.urls import path, include
 from core.views import (
     register_user, login_user, user_profile, verify_email,
-    password_reset_request, password_reset_confirm,
+    password_reset_request, password_reset_confirm, stripe_webhook,
     ResourceListCreateView, ResourceDetailView,
-    BookingListCreateView, ReviewListCreateView
+    BookingListCreateView, ReviewListCreateView,
+    CreateCheckoutSessionView
 )
 from rest_framework_simplejwt.views import TokenRefreshView
 
@@ -30,5 +31,8 @@ urlpatterns = [
         path('auth/registration/', include('dj_rest_auth.registration.urls')),
         path('auth/google/', include('allauth.socialaccount.providers.google.urls')),
         path('auth/facebook/', include('allauth.socialaccount.providers.facebook.urls')),
+        
+        path('create-checkout-session/<int:resource_id>/', CreateCheckoutSessionView.as_view(), name='create_checkout_session'),
+        path('webhook/stripe/', stripe_webhook, name='stripe_webhook'),
     ])),
 ]

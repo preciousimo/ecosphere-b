@@ -258,3 +258,8 @@ PASSWORD_RESET_TIMEOUT_DAYS = 1  # Number of days before password reset link exp
 
 # Email settings (if not already set)
 DEFAULT_FROM_EMAIL = 'noreply@ecosphere.com'
+
+# Stripe Settings
+STRIPE_SECRET_KEY = os.getenv('STRIPE_SECRET_KEY')
+STRIPE_PUBLISHABLE_KEY = os.getenv('STRIPE_PUBLISHABLE_KEY')
+STRIPE_WEBHOOK_SECRET = os.getenv('STRIPE_WEBHOOK_SECRET')
