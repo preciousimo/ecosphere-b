@@ -2,13 +2,11 @@ from django.contrib import admin
 from django.urls import path, include
 from core.views import (
     user_profile,
-    ResourceListCreateView, ResourceDetailView,
-    BookingListCreateView, ReviewListCreateView,
     WasteEntryListCreateView, RecyclingCenterListCreateView,
     RecyclingCenterDetailView, EcoChallengeListCreateView,
     EcoChallengeDetailView, UserChallengeListView,
     UserChallengeCompleteView, LeaderboardListView,
-    UserWasteSummaryView, CreateCheckoutSessionView, stripe_webhook,
+    UserWasteSummaryView, 
     SmartHomeDeviceListCreateView, SmartHomeDeviceDetailView,
     EnergyUsageListCreateView, EnergySavingRecommendationListView,
     EnergySavingRecommendationMarkReadView, CommunityEnergyGoalListCreateView,
@@ -23,14 +21,9 @@ from core.views import (
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('userauth.urls')),
+    path('api/', include('marketplace.urls')),
     path('api/', include([
         path('profile/', user_profile, name='profile'),
-
-        # Resource Sharing Marketplace URLs
-        path('resources/', ResourceListCreateView.as_view(), name='resource_list_create'),
-        path('resources/<int:pk>/', ResourceDetailView.as_view(), name='resource_detail'),
-        path('bookings/', BookingListCreateView.as_view(), name='booking_list_create'),
-        path('reviews/<int:resource_id>/', ReviewListCreateView.as_view(), name='review_list_create'),
 
         # Waste Reduction and Recycling URLs
         path('waste-entries/', WasteEntryListCreateView.as_view(), name='waste_entry_list_create'),
@@ -54,9 +47,6 @@ urlpatterns = [
         path('community-progress/', UserCommunityProgressListView.as_view(), name='user_community_progress_list'),
         path('community-progress/update/<int:community_goal_id>/', UserCommunityProgressUpdateView.as_view(), name='user_community_progress_update'),
         path('generate-recommendations/', GenerateEnergySavingRecommendationsView.as_view(), name='generate_energy_recommendations'),
-        # Payment and Webhooks
-        path('create-checkout-session/<int:resource_id>/', CreateCheckoutSessionView.as_view(), name='create_checkout_session'),
-        path('webhook/stripe/', stripe_webhook, name='stripe_webhook'),
 
         # Local Food Production URLs
         path('gardens/', CommunityGardenListCreateView.as_view(), name='community_garden_list_create'),
@@ -67,11 +57,5 @@ urlpatterns = [
         path('produce-exchange-listings/<int:pk>/', ProduceExchangeListingDetailView.as_view(), name='produce_exchange_listing_detail'),
         path('gardening-tips/', GardeningTipListCreateView.as_view(), name='gardening_tip_list_create'),
         path('gardening-tips/<int:pk>/', GardeningTipDetailView.as_view(), name='gardening_tip_detail'),
-
-        # Authentication and Social Auth
-        path('auth/', include('dj_rest_auth.urls')),
-        path('auth/registration/', include('dj_rest_auth.registration.urls')),
-        path('auth/google/', include('allauth.socialaccount.providers.google.urls')),
-        path('auth/facebook/', include('allauth.socialaccount.providers.facebook.urls')),
     ])),
 ]

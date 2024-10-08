@@ -33,11 +33,13 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.sites',
+    
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
     'allauth.socialaccount.providers.google',
     'allauth.socialaccount.providers.facebook',
+    
     'dj_rest_auth',
     'dj_rest_auth.registration',
     'rest_framework',
@@ -45,8 +47,10 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'django_filters',
     'corsheaders',
+    
     'core',
     'userauth',
+    'marketplace',
 ]
 
 SITE_ID = 1
