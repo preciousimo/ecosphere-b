@@ -17,6 +17,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('userauth.urls')),
     path('api/', include('marketplace.urls')),
+    path('api/', include('recycling.urls')),
     path('api/', include([
         path('profile/', user_profile, name='profile'),
 
