@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     'core',
     'userauth',
     'marketplace',
+    'recycling',
 ]
 
 SITE_ID = 1
