@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     'userauth',
     'marketplace',
     'recycling',
+    'energy_dashboard',
 ]
 
 SITE_ID = 1
